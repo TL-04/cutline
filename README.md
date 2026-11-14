@@ -7,7 +7,8 @@ A video editor that runs entirely in your browser. Your files never leave your c
 - Cut, split, trim and arrange video and audio clips on a timeline
 - Separate audio from video; multi-track OBS (.mkv) recordings import every audio track
 - Auto subtitles (speech recognition runs locally), with styling, colours and sync to audio
-- Export as WebM, horizontal 16:9 or vertical 9:16 (crop or blurred background)
+- Export as WebM at 720p 30 fps or 1080p 60 fps, horizontal 16:9 or vertical 9:16 (crop or blurred background)
+- Link your Videos folder: list or thumbnail grid, group by folder, name or save date, and sort files into folders on disk
 
 ## Install as an app
 

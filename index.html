@@ -180,6 +180,31 @@ main{display:grid;grid-template-columns:250px minmax(0,1fr) 300px;min-height:0}
 .folder-link{width:100%;justify-content:center;margin:4px 0}
 .folder #folderMsg{margin:4px 0 2px;line-height:1.4}
 .folder-list{padding:6px 0 8px}
+.folder-tools{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:4px 0}
+.folder-tools #btnFolderOrganize{flex:1 0 100%;justify-content:center}
+.folder-tools select{flex:1;min-width:0;background:var(--panel2);border:1px solid var(--line2);border-radius:6px;padding:4px 6px}
+.folder-tools button{padding:4px 8px;white-space:nowrap}
+.fgroup{margin:2px 0}
+.fgroup>summary{list-style:none;display:flex;align-items:center;gap:6px;padding:5px 4px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600}
+.fgroup>summary::-webkit-details-marker{display:none}
+.fgroup>summary:hover{background:var(--hover)}
+.fgroup>summary svg{width:14px;height:14px;flex:none;color:var(--muted);transition:transform .15s}
+.fgroup[open]>summary .chev{transform:rotate(90deg)}
+.fgroup>summary .n{margin-left:auto;color:var(--muted);font-weight:400;font-variant-numeric:tabular-nums}
+.fgroup>.items{padding-left:10px}
+#folderViewSeg button{padding:4px 6px}
+#folderViewSeg svg{width:14px;height:14px}
+/* grid view: thumbnail tiles */
+.folder-list.grid,.folder-list.grid .items{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:6px}
+.folder-list.grid .fgroup{grid-column:1/-1}
+.folder-list.grid .item{flex-direction:column;align-items:stretch;gap:4px;padding:4px}
+.folder-list.grid .item .thumb{width:100%;height:auto;aspect-ratio:16/9}
+.folder-list.grid .item .meta{min-width:0}
+.folder-list.grid .item .name{font-size:11px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:normal;word-break:break-word}
+.folder-list.grid .item .path{display:none}
+.thumb.has-img svg{display:none}
+.org-plan{max-height:220px;overflow:auto;border:1px solid var(--line2);border-radius:8px;padding:6px 10px;font-size:13px;line-height:1.7}
+.org-plan b{font-variant-numeric:tabular-nums}
 .item.loading{opacity:.6;cursor:progress}
 .item .path{color:var(--muted);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .savedir{display:inline-flex;align-items:center;gap:2px;min-width:0}
@@ -361,8 +386,11 @@ a.btn:hover{background:var(--accent-d)}
 .theme-seg button+button{border-left:1px solid var(--line2)}
 .theme-seg button:hover{background:var(--hover);color:var(--text)}
 .theme-seg button.on{background:var(--on-bg);color:var(--text)}
-@media (max-width:1100px){#fitSeg .seg-lbl{display:none}}
-@media (max-width:900px){#orientSeg .seg-lbl{display:none}}
+/* header: drop labels as the window narrows so Export always stays visible */
+@media (max-width:1400px){header > .hint{display:none}}
+@media (max-width:1250px){#fitSeg .seg-lbl,#btnAppear .seg-lbl{display:none}}
+@media (max-width:1100px){#orientSeg .seg-lbl{display:none} header{gap:8px}}
+@media (max-width:900px){#saveDirLbl{display:none}}
 .appear-wrap{position:relative}
 .appear{position:absolute;right:0;top:calc(100% + 8px);z-index:40;width:270px;background:var(--panel);border:1px solid var(--line2);border-radius:10px;
   box-shadow:0 12px 32px var(--shadow);padding:14px;display:flex;flex-direction:column;gap:12px}
@@ -393,7 +421,7 @@ a.btn:hover{background:var(--accent-d)}
     <button data-theme="system" role="radio" title="Follow the system theme"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></button>
   </div>
   <div class="appear-wrap">
-    <button id="btnAppear" title="Appearance: theme and colours" aria-expanded="false"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 100 18c1.1 0 1.5-.8 1.5-1.5 0-1.2-1-1.5-1-2.6 0-.8.7-1.4 1.5-1.4H16a5 5 0 005-5c0-4-4-7.5-9-7.5z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="15" cy="7" r="1"/></svg>Appearance</button>
+    <button id="btnAppear" title="Appearance: theme and colours" aria-expanded="false"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 100 18c1.1 0 1.5-.8 1.5-1.5 0-1.2-1-1.5-1-2.6 0-.8.7-1.4 1.5-1.4H16a5 5 0 005-5c0-4-4-7.5-9-7.5z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="15" cy="7" r="1"/></svg><span class="seg-lbl">Appearance</span></button>
     <div class="appear" id="appearPanel" hidden>
       <h3>Appearance</h3>
       <div class="arow"><span>Theme</span><div class="seg" id="apTheme"><button data-theme="light">Light</button><button data-theme="dark">Dark</button><button data-theme="system">System</button></div></div>
@@ -404,12 +432,16 @@ a.btn:hover{background:var(--accent-d)}
     </div>
   </div>
   <div class="theme-seg" id="orientSeg" role="group" aria-label="Video orientation" title="Video orientation (preview and export)">
-    <button data-o="h" title="Horizontal 16:9 (1280×720)"><svg viewBox="0 0 24 24"><rect x="2.5" y="6.5" width="19" height="11" rx="1.5"/></svg><span class="seg-lbl">16:9</span></button>
-    <button data-o="v" title="Vertical 9:16 (720×1280): choose Crop or Blur for horizontal video"><svg viewBox="0 0 24 24"><rect x="6.5" y="2.5" width="11" height="19" rx="1.5"/></svg><span class="seg-lbl">9:16</span></button>
+    <button data-o="h" title="Horizontal 16:9"><svg viewBox="0 0 24 24"><rect x="2.5" y="6.5" width="19" height="11" rx="1.5"/></svg><span class="seg-lbl">16:9</span></button>
+    <button data-o="v" title="Vertical 9:16: choose Crop or Blur for horizontal video"><svg viewBox="0 0 24 24"><rect x="6.5" y="2.5" width="11" height="19" rx="1.5"/></svg><span class="seg-lbl">9:16</span></button>
   </div>
   <div class="theme-seg" id="fitSeg" role="group" aria-label="How horizontal video fills the vertical frame" hidden>
     <button data-f="crop" title="Crop: horizontal video fills the frame, sides cut off (centred)"><svg viewBox="0 0 24 24"><path d="M6 2v16h16M2 6h16v16"/></svg><span class="seg-lbl">Crop</span></button>
     <button data-f="blur" title="Blur: the whole video fits, over a blurred, zoomed copy of itself"><svg viewBox="0 0 24 24"><rect x="6.5" y="2.5" width="11" height="19" rx="1.5" stroke-dasharray="2 2"/><rect x="3" y="9" width="18" height="6" rx="1"/></svg><span class="seg-lbl">Blur</span></button>
+  </div>
+  <div class="theme-seg" id="qualitySeg" role="group" aria-label="Output resolution and frame rate">
+    <button data-q="720" title="720p at 30 fps: smaller files, quicker to share">720p</button>
+    <button data-q="1080" title="1080p at 60 fps: sharper and smoother, larger files (about 2.5× the size)">1080p60</button>
   </div>
   <span class="savedir" id="saveDirBox" hidden>
     <button id="btnSaveDir" title="Choose the folder exports are saved to"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg><span id="saveDirLbl">Save to: Downloads</span></button>
@@ -436,6 +468,16 @@ a.btn:hover{background:var(--accent-d)}
           </span>
         </div>
         <button id="btnFolderLink" class="folder-link"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>Link Videos folder</button>
+        <div class="folder-tools" id="folderTools" hidden>
+          <select id="folderGroup" aria-label="Show the folder's files" title="Group the files in this list (your files are not moved)">
+            <option value="">All files</option><option value="folder">By folder</option><option value="name">By name</option><option value="date">By save date</option>
+          </select>
+          <div class="theme-seg" id="folderViewSeg" role="group" aria-label="List or grid">
+            <button data-v="list" title="List"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h1M3 12h1M3 18h1"/></svg></button>
+            <button data-v="grid" title="Grid with thumbnails"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></button>
+          </div>
+          <button id="btnFolderOrganize" title="Move the files at the top of this folder into subfolders on disk, by name or save date (asks first)">Sort on disk…</button>
+        </div>
         <div class="hint" id="folderMsg"></div>
         <div class="bin-list folder-list" id="folderList"></div>
       </div>
@@ -554,6 +596,17 @@ a.btn:hover{background:var(--accent-d)}
   </div>
 </section>
 
+<div class="modal" id="orgModal">
+  <div class="card" role="dialog" aria-labelledby="orgTitle">
+    <h3 id="orgTitle">Sort into folders</h3>
+    <div class="org-mode theme-seg" id="orgMode" role="group" aria-label="Sort by">
+      <button data-m="date" style="flex:1">By save date (month)</button><button data-m="name" style="flex:1">By name</button>
+    </div>
+    <div class="hint" id="orgText"></div>
+    <div class="org-plan" id="orgPlan"></div>
+    <div class="actions"><button id="orgCancel">Cancel</button><button class="primary" id="orgGo">Move files</button></div>
+  </div>
+</div>
 <div class="modal" id="exportModal">
   <div class="card">
     <h3 id="exTitle">Exporting…</h3>
@@ -593,7 +646,7 @@ a.btn:hover{background:var(--accent-d)}
 'use strict';
 const $ = s => document.querySelector(s);
 const MIN_LEN = 0.1;       // shortest clip, in seconds
-const FPS = 30;
+let FPS = 30;              // output frame rate: 30, or 60 at 1080p (setQuality)
 let W = 1280, H = 720;   // output frame: 16:9, or 9:16 when the orientation is vertical (setOrientation)
 
 const ICON = {
@@ -823,6 +876,8 @@ window.addEventListener('drop', e => {
 // folder once, the handle is kept in IndexedDB, and on later visits the browser only needs a permission check
 // (or one click to re-grant). Folder files are listed by name only; a file is read when it is first used.
 const FS_OK = typeof window.showDirectoryPicker === 'function';
+// moving files into subfolders needs FileSystemHandle.move() (Chrome / Edge)
+const ORG_OK = FS_OK && typeof window.FileSystemFileHandle === 'function' && typeof FileSystemFileHandle.prototype.move === 'function';
 const FOLDER_DEPTH = 3, FOLDER_MAX = 500;
 let folderDir = null, folderGranted = false, folderItems = [], folderBusy = false, exportDir = null;
 let folderGen = 0;   // bumped by every new listing, link or unlink: a listing that finishes late is thrown away
@@ -857,6 +912,125 @@ async function hasPermission(h, mode, ask) {
 }
 
 function folderMessage(text) { $('#folderMsg').textContent = text; $('#folderMsg').hidden = !text; }
+const folderItemHtml = it => `
+    <div class="item${it.loading ? ' loading' : ''}" draggable="true" data-fs="${it.id}" title="${esc(it.path)}: drag onto the timeline, or double-click to add">
+      <div class="thumb ${it.kind}${folderThumbs.get(it.path) ? ' has-img" style="background-image:url(' + folderThumbs.get(it.path) + ')' : ''}">${it.kind === 'audio' ? ICON.wave : '<svg viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3"/></svg>'}</div>
+      <div class="meta"><div class="name">${esc(it.name)}</div><div class="path">${it.dir ? esc(it.dir) + ' · ' : ''}${it.kind === 'video' ? 'Video' : 'Audio'}${it.mediaId && media(it.mediaId) ? ' · in project' : ''}</div></div>
+    </div>`;
+// ---- grouping (list only) and sorting into real subfolders ----
+// by name: the first word of the file name, any case ("Minecraft_03.mp4", "minecraft finale.mkv" -> "Minecraft"),
+// else its first character ("#" for digits and symbols, so date-named recordings go together);
+// by save date: the month the file was last saved (YYYY-MM, which is also the folder name on disk)
+let folderGroup = '';
+try { folderGroup = localStorage.getItem('cutline.folderGroup') || ''; } catch (err) {}
+// groups start condensed (collapsed); the ones the user opens are remembered while the page is open, and a sort
+// on disk condenses them all again
+const folderExpanded = new Set();
+function nameKey(name) {
+  const base = name.replace(/\.[^.]+$/, '').trim();
+  const m = /^[\p{L}][\p{L}'’]*/u.exec(base);
+  if (m && m[0].length >= 2) return m[0].charAt(0).toUpperCase() + m[0].slice(1).toLowerCase();   // same word, any case
+  const c = base.charAt(0).toUpperCase();
+  return /[\p{L}]/u.test(c) ? c : '#';
+}
+const dateKey = ms => { const d = new Date(ms); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; };
+const dateLabel = k => { const [y, m] = k.split('-'); return new Date(+y, +m - 1, 1).toLocaleDateString(undefined, { month: 'long', year: 'numeric' }); };
+// save dates come from the file's metadata (nothing is read); fetched once per listing, a few at a time
+let folderDatesGen = -1;
+async function folderLoadDates() {
+  const gen = folderGen; if (folderDatesGen === gen) return; folderDatesGen = gen;
+  const todo = folderItems.filter(i => i.mtime == null), list = folderItems;
+  for (let i = 0; i < todo.length; i += 16) {
+    await Promise.all(todo.slice(i, i + 16).map(async it => { try { it.mtime = (await it.handle.getFile()).lastModified; } catch (e) { it.mtime = 0; } }));
+    if (gen !== folderGen || list !== folderItems) return;
+  }
+  renderFolder();
+}
+const TOP = '(not in a subfolder)';
+function folderGroups(items, by) {
+  const groups = new Map();
+  for (const it of items) {
+    const k = by === 'date' ? (it.mtime ? dateKey(it.mtime) : 'Unknown date') : by === 'folder' ? (it.dir || TOP) : nameKey(it.name);
+    (groups.get(k) || groups.set(k, []).get(k)).push(it);
+  }
+  const last = k => k === '#' || k === TOP;
+  const keys = [...groups.keys()].sort(by === 'date' ? (a, b) => b.localeCompare(a) : (a, b) => last(a) - last(b) || a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+  return keys.map(k => ({ key: k, label: by === 'date' && k !== 'Unknown date' ? dateLabel(k) : k === '#' ? '0–9 & symbols' : k,
+    disk: k === '#' ? 'Other' : k,   // folder name when sorting on disk
+    items: by === 'date' ? groups.get(k).sort((a, b) => (b.mtime || 0) - (a.mtime || 0)) : groups.get(k) }));
+}
+// ---- grid view: thumbnails of folder videos, made only for tiles that come into view (a frame near the start;
+// the browser reads just the bytes it needs), two at a time, kept while the page is open ----
+let folderView = 'list';
+try { if (localStorage.getItem('cutline.folderView') === 'grid') folderView = 'grid'; } catch (err) {}
+const folderThumbs = new Map();   // path -> data URL ('' = no picture)
+const thumbQueue = [], thumbBusy = new Set();
+let thumbIO = null;
+function setFolderView(v) {
+  folderView = v === 'grid' ? 'grid' : 'list';
+  try { localStorage.setItem('cutline.folderView', folderView); } catch (err) {}
+  renderFolderList();
+}
+function folderThumbsObserve() {
+  if (folderView !== 'grid' || !('IntersectionObserver' in window)) return;
+  if (!thumbIO) thumbIO = new IntersectionObserver(entries => {
+    for (const e of entries) if (e.isIntersecting) { thumbIO.unobserve(e.target); queueThumb(e.target.dataset.fs); }
+  }, { rootMargin: '200px' });   // (scrolling panels clip it, so tiles out of sight wait)
+  thumbIO.disconnect();
+  $('#folderList').querySelectorAll('.item[data-fs]').forEach(el => {
+    const it = folderItems.find(i => i.id === el.dataset.fs);
+    if (it && it.kind === 'video' && !folderThumbs.has(it.path) && el.offsetParent) thumbIO.observe(el);
+  });
+}
+function queueThumb(id) {
+  const it = folderItems.find(i => i.id === id);
+  if (!it || folderThumbs.has(it.path) || thumbBusy.has(it.path) || thumbQueue.includes(it)) return;
+  thumbQueue.push(it); pumpThumbs();
+}
+async function pumpThumbs() {
+  while (thumbBusy.size < 2 && thumbQueue.length) {
+    const it = thumbQueue.shift(); thumbBusy.add(it.path);
+    makeFolderThumb(it).then(url => {
+      thumbBusy.delete(it.path); folderThumbs.set(it.path, url || '');
+      if (url) document.querySelectorAll(`#folderList .item[data-fs="${it.id}"] .thumb`).forEach(t => { t.classList.add('has-img'); t.style.backgroundImage = `url(${url})`; });
+      pumpThumbs();
+    });
+  }
+}
+async function makeFolderThumb(it) {
+  let url = null;
+  try {
+    url = URL.createObjectURL(await it.handle.getFile());
+    const el = document.createElement('video');
+    el.muted = true; el.preload = 'metadata'; el.src = url;
+    const ok = await new Promise(res => { el.onloadedmetadata = () => res(true); el.onerror = () => res(false); setTimeout(() => res(false), 5000); });
+    if (!ok || !el.videoWidth) return null;
+    return await grabFrame(el, Math.min(1, (el.duration || 2) * 0.1));
+  } catch (e) { return null; }
+  finally { if (url) URL.revokeObjectURL(url); }
+}
+$('#folderViewSeg').addEventListener('click', e => { const b = e.target.closest('button[data-v]'); if (b && b.dataset.v !== folderView) setFolderView(b.dataset.v); });
+function renderFolderList() {
+  $('#folderList').classList.toggle('grid', folderView === 'grid');
+  document.querySelectorAll('#folderViewSeg button').forEach(b => { b.classList.toggle('on', b.dataset.v === folderView); b.setAttribute('aria-pressed', b.dataset.v === folderView); });
+  renderFolderItems();
+  folderThumbsObserve();
+}
+function renderFolderItems() {
+  const box = $('#folderList');
+  if (!folderGroup || !folderItems.length) { box.innerHTML = folderItems.map(folderItemHtml).join(''); return; }
+  if (folderGroup === 'date' && folderItems.some(i => i.mtime == null)) {
+    folderLoadDates();
+    box.innerHTML = '<div class="hint" style="padding:4px">Reading save dates…</div>';
+    return;
+  }
+  const chev = '<svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>';
+  box.innerHTML = folderGroups(folderItems, folderGroup).map(g => `
+    <details class="fgroup" data-g="${esc(g.key)}"${folderExpanded.has(folderGroup + ':' + g.key) ? ' open' : ''}>
+      <summary>${chev}<svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>${esc(g.label)}<span class="n">${g.items.length}</span></summary>
+      <div class="items">${g.items.map(folderItemHtml).join('')}</div>
+    </details>`).join('');
+}
 function renderFolder() {
   const linked = !!folderDir;
   $('#folderTitle').textContent = linked ? folderDir.name : 'Videos folder';
@@ -864,11 +1038,10 @@ function renderFolder() {
   $('#btnFolderRefresh').hidden = !linked || !folderGranted;
   $('#btnFolderRefresh').disabled = folderBusy;
   $('#btnFolderUnlink').hidden = !linked;
-  $('#folderList').innerHTML = folderItems.map(it => `
-    <div class="item${it.loading ? ' loading' : ''}" draggable="true" data-fs="${it.id}" title="${esc(it.path)}: drag onto the timeline, or double-click to add">
-      <div class="thumb ${it.kind}">${it.kind === 'audio' ? ICON.wave : '<svg viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3"/></svg>'}</div>
-      <div class="meta"><div class="name">${esc(it.name)}</div><div class="path">${it.dir ? esc(it.dir) + ' · ' : ''}${it.kind === 'video' ? 'Video' : 'Audio'}${it.mediaId && media(it.mediaId) ? ' · in project' : ''}</div></div>
-    </div>`).join('');
+  $('#folderTools').hidden = !linked || !folderGranted || !folderItems.length;
+  $('#folderGroup').value = folderGroup;
+  $('#btnFolderOrganize').hidden = !ORG_OK;
+  renderFolderList();
   $('#binEmpty').style.display = state.media.length || folderItems.length ? 'none' : '';
 }
 function folderShowLink(label, show = true) {
@@ -991,6 +1164,81 @@ $('#btnFolderLink').onclick = folderLinkClick;
 $('#btnFolderRefresh').onclick = folderRefresh;
 $('#btnFolderUnlink').onclick = folderUnlink;
 $('#folderList').addEventListener('dblclick', e => { const it = e.target.closest('[data-fs]'); if (it) folderAdd(it.dataset.fs); });
+$('#folderGroup').addEventListener('change', e => {
+  folderGroup = e.target.value;
+  try { localStorage.setItem('cutline.folderGroup', folderGroup); } catch (err) {}
+  renderFolderList();
+});
+$('#folderList').addEventListener('toggle', e => {
+  const d = e.target.closest?.('.fgroup'); if (!d) return;
+  const k = folderGroup + ':' + d.dataset.g;
+  if (d.open) { folderExpanded.add(k); folderThumbsObserve(); } else folderExpanded.delete(k);
+}, true);
+
+// "Sort on disk…": moves the files at the top of the linked folder into subfolders (one per month, or per name).
+// Files already in a subfolder stay put, files used in the project are skipped (they are read from where they are),
+// and a file is never put over one with the same name. Nothing is copied or deleted.
+let orgMode = 'date', orgPlanNow = null, orgBusy = false;
+async function ensureDates(items) {
+  const todo = items.filter(i => i.mtime == null);
+  for (let i = 0; i < todo.length; i += 16)
+    await Promise.all(todo.slice(i, i + 16).map(async it => { try { it.mtime = (await it.handle.getFile()).lastModified; } catch (e) { it.mtime = 0; } }));
+}
+async function orgRender() {
+  document.querySelectorAll('#orgMode button').forEach(b => { b.classList.toggle('on', b.dataset.m === orgMode); b.setAttribute('aria-pressed', b.dataset.m === orgMode); });
+  const top = folderItems.filter(i => !i.dir);
+  const inUse = top.filter(i => i.mediaId && media(i.mediaId));
+  let movable = top.filter(i => !inUse.includes(i));
+  if (orgMode === 'date') { $('#orgPlan').innerHTML = '<span class="hint">Reading save dates…</span>'; await ensureDates(movable); movable = movable.filter(i => i.mtime); }
+  const groups = folderGroups(movable, orgMode), n = movable.length, name = esc(folderDir.name);
+  orgPlanNow = { groups, n };
+  $('#orgGo').disabled = !n;
+  $('#orgGo').textContent = n ? `Move ${n} file${n > 1 ? 's' : ''}` : 'Move files';
+  $('#orgText').innerHTML = n
+    ? `Moves the ${n} video and audio file${n > 1 ? 's' : ''} at the top of <b>${name}</b> into ${groups.length} folder${groups.length > 1 ? 's' : ''} inside it` +
+      `${orgMode === 'date' ? ', one for each month they were saved' : ', named after the start of each file name'}. Files already in subfolders stay where they are. Nothing is copied or deleted.`
+    : `There are no files to move at the top of <b>${name}</b>${top.length ? '' : ' (its files are already in subfolders)'}.`;
+  $('#orgPlan').innerHTML = groups.map(g => `<div><svg viewBox="0 0 24 24" style="width:14px;height:14px;vertical-align:-2px;color:var(--muted)"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg> ${esc(g.disk)}${g.label !== g.disk ? ` <span class="hint">(${esc(g.label)})</span>` : ''} — <b>${g.items.length}</b> file${g.items.length > 1 ? 's' : ''}</div>`).join('') +
+    (inUse.length ? `<div class="hint">${inUse.length} file${inUse.length > 1 ? 's are' : ' is'} used in this project and will stay where ${inUse.length > 1 ? 'they are' : 'it is'}.</div>` : '');
+  $('#orgPlan').hidden = !groups.length && !inUse.length;
+}
+function openOrganize() {
+  if (!folderDir || !folderGranted || orgBusy) return;
+  $('#orgModal').classList.add('show');
+  orgRender();
+}
+const closeOrganize = () => { if (!orgBusy) $('#orgModal').classList.remove('show'); };
+async function runOrganize() {
+  const plan = orgPlanNow; if (!plan || !plan.n || orgBusy) return;
+  const dir = folderDir;
+  if (!await hasPermission(dir, 'readwrite', true)) { $('#orgText').textContent = `Cutline wasn't allowed to change ${dir.name}, so nothing was moved.`; return; }
+  orgBusy = true; $('#orgGo').disabled = true; $('#orgCancel').disabled = true;
+  let moved = 0; const skipped = [];
+  try {
+    for (const g of plan.groups) {
+      const sub = await dir.getDirectoryHandle(g.disk, { create: true });
+      for (const it of g.items) {
+        $('#orgGo').textContent = `Moving… ${moved + skipped.length + 1} of ${plan.n}`;
+        try { await sub.getFileHandle(it.name); skipped.push(`${it.name} (${g.disk} already has a file with that name)`); continue; } catch (e) { /* free: good */ }
+        try { await it.handle.move(sub); moved++; } catch (e) { skipped.push(`${it.name} (${e.message || e.name})`); }
+      }
+    }
+  } catch (e) { skipped.push(`couldn't create a folder: ${e.message || e.name}`); }
+  orgBusy = false; $('#orgCancel').disabled = false;
+  $('#orgModal').classList.remove('show');
+  toast(`Moved ${moved} file${moved === 1 ? '' : 's'} into folders` + (skipped.length ? `; ${skipped.length} left where ${skipped.length > 1 ? 'they were' : 'it was'}` : ''));
+  // show the new folders
+  folderExpanded.clear();   // condense every folder after sorting
+  if (moved && !folderGroup) { folderGroup = 'folder'; try { localStorage.setItem('cutline.folderGroup', folderGroup); } catch (err) {} }
+  await folderRefresh();
+  if (skipped.length) folderMessage('Not moved: ' + skipped.slice(0, 5).join('; ') + (skipped.length > 5 ? `; and ${skipped.length - 5} more` : ''));
+}
+$('#btnFolderOrganize').onclick = openOrganize;
+$('#orgCancel').onclick = closeOrganize;
+$('#orgGo').onclick = runOrganize;
+$('#orgMode').addEventListener('click', e => { const b = e.target.closest('button[data-m]'); if (b && b.dataset.m !== orgMode && !orgBusy) { orgMode = b.dataset.m; orgRender(); } });
+$('#orgModal').addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Escape') closeOrganize(); });
+$('#orgModal').addEventListener('mousedown', e => { if (e.target.id === 'orgModal') closeOrganize(); });
 $('#folderList').addEventListener('dragstart', e => {
   const el = e.target.closest('[data-fs]'); if (!el) return;
   const it = folderItems.find(i => i.id === el.dataset.fs); if (!it) return;
@@ -1719,7 +1967,8 @@ try { if (localStorage.getItem('cutline.orient') === 'v') orient = 'v'; } catch 
 function setOrientation(o) {
   if (exporting) { toast('Wait for the export to finish before changing the orientation'); return; }
   orient = o === 'v' ? 'v' : 'h';
-  [W, H] = orient === 'v' ? [720, 1280] : [1280, 720];
+  const short = quality === '1080' ? 1080 : 720, long = short * 16 / 9;
+  [W, H] = orient === 'v' ? [short, long] : [long, short];
   cv.width = W; cv.height = H;
   $('#fitSeg').hidden = orient !== 'v';
   document.querySelectorAll('#orientSeg button').forEach(b => { b.classList.toggle('on', b.dataset.o === orient); b.setAttribute('aria-pressed', b.dataset.o === orient); });
@@ -1727,6 +1976,18 @@ function setOrientation(o) {
   draw(); renderInspector();
 }
 $('#orientSeg').addEventListener('click', e => { const b = e.target.closest('button[data-o]'); if (b && b.dataset.o !== orient) setOrientation(b.dataset.o); });
+// output quality (header): 720p at 30 fps, or 1080p at 60 fps; applies to the preview frame and the export
+let quality = '720';
+try { if (localStorage.getItem('cutline.quality') === '1080') quality = '1080'; } catch (err) {}
+function setQuality(q) {
+  if (exporting) { toast('Wait for the export to finish before changing the quality'); return; }
+  quality = q === '1080' ? '1080' : '720';
+  FPS = quality === '1080' ? 60 : 30;
+  document.querySelectorAll('#qualitySeg button').forEach(b => { b.classList.toggle('on', b.dataset.q === quality); b.setAttribute('aria-pressed', b.dataset.q === quality); });
+  try { localStorage.setItem('cutline.quality', quality); } catch (err) {}
+  setOrientation(orient);   // resizes the frame
+}
+$('#qualitySeg').addEventListener('click', e => { const b = e.target.closest('button[data-q]'); if (b && b.dataset.q !== quality) setQuality(b.dataset.q); });
 // vertical frame: horizontal video is cropped to fill it, or fitted whole over a blurred copy (Blur)
 try { if (localStorage.getItem('cutline.vfit') === 'blur') vFit = 'blur'; } catch (err) {}
 function setVerticalFit(f) {
@@ -1750,7 +2011,7 @@ async function exportVideo() {
   const dest = actx.createMediaStreamDestination();
   limiter.connect(dest);
   const stream = new MediaStream([...cv.captureStream(FPS).getVideoTracks(), ...dest.stream.getAudioTracks()]);
-  const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 8_000_000 });
+  const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: quality === '1080' ? 20_000_000 : 8_000_000 });
   const chunks = [];
   rec.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
   exporting = { rec, dest, chunks, mime, end, cancelled: false, stream, saveDir };
@@ -2607,7 +2868,7 @@ const CAP = {
 function groupWords(words) {
   const meas = document.createElement('canvas').getContext('2d');
   meas.font = subFont(state.subs.style);
-  const maxW = W * 0.9;   // same width drawSubtitles wraps at
+  const maxW = W / (Math.min(W, H) / 720) * 0.9;   // same width drawSubtitles wraps at (subtitle sizes are in 720p pixels)
   const segs = []; let cur = [];
   const flush = () => {
     if (!cur.length) return;
@@ -2844,15 +3105,18 @@ function drawSubtitles() {
   }
   const ctx = g2d;
   ctx.save();
+  // subtitle sizes are in 720p pixels: scaled up for 1080p, so captions look the same at either resolution
+  const k = Math.min(W, H) / 720, FW = W / k, FH = H / k;
+  ctx.scale(k, k);
   ctx.font = font; ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
-  const maxW = W * 0.9, space = ctx.measureText(' ').width;
+  const maxW = FW * 0.9, space = ctx.measureText(' ').width;
   // lines spoken at the same time are shown as separate captions, one per row (rows stay fixed, so a caption
   // doesn't jump when another one appears or ends); row 0 sits at the chosen position, later rows stack away
   // from the edge with a gap between them
   const rowOf = segs.length > 1 ? subRows(state.subs.segments) : null;
   const byRow = new Map();
   for (const s of segs) { const r = rowOf ? rowOf.get(s) || 0 : 0; (byRow.get(r) || byRow.set(r, []).get(r)).push(s); }
-  const lh = st.size * 1.22, margin = H * 0.06, gap = st.size * 0.45;
+  const lh = st.size * 1.22, margin = FH * 0.06, gap = st.size * 0.45;
   const blocks = [...byRow.keys()].sort((a, b) => a - b).map(r => {
     const lines = [];
     for (const s of byRow.get(r)) {
@@ -2870,11 +3134,11 @@ function drawSubtitles() {
   const totalH = blocks.reduce((a, b) => a + b.h, 0) + gap * (blocks.length - 1);
   // top-down order: for a bottom position row 0 is the lowest caption
   const ordered = st.pos === 'bottom' || !st.pos ? [...blocks].reverse() : blocks;
-  let y0 = st.pos === 'top' ? margin : st.pos === 'middle' ? (H - totalH) / 2 : H - margin - totalH;
+  let y0 = st.pos === 'top' ? margin : st.pos === 'middle' ? (FH - totalH) / 2 : FH - margin - totalH;
   const place = [];
   for (const b of ordered) {
     b.lines.forEach((ln, i) => {
-      let x = (W - ln.w) / 2;
+      let x = (FW - ln.w) / 2;
       const y = y0 + i * lh + st.size * 0.8;
       for (const p of ln.words) { place.push({ text: p.w.text, x, y, color: p.w.color || st.color }); x += p.ww + space; }
     });
@@ -4287,7 +4551,7 @@ queueMicrotask(() => { if (window.cutline) window.cutline.mp4 = { audioTracks: m
 
 /* ---------------- boot ---------------- */
 $('#zoom').value = zoomToSlider(state.pps);
-setVerticalFit(vFit); setOrientation(orient);
+setVerticalFit(vFit); setQuality(quality);
 renderBin(); renderAll(); updatePlayhead();
 window.cutline = { state, importFiles, play, pause, seek, splitAtPlayhead, addClip, exportVideo };
 // installable app (PWA): the service worker caches the app so it opens offline; not on file:// or the local test copies
